@@ -105,8 +105,14 @@ jobs:
           # until grade_submission (timeout=600) finishes. Heavy grading (the
           # T=4096 leaderboard do_bench) routinely exceeds 150s, so this is load-
           # bearing; --max-time 700 bounds the whole poll.
+          #
+          # Do NOT add `-X POST`: it pins POST onto every hop in the redirect
+          # chain, so curl re-POSTs to the 303 poll URL and Modal answers
+          # `bad redirect method` (HTTP 400). `-d @file` already makes the first
+          # request a POST; the 303 must downgrade to GET, which curl does by
+          # default only when the method is NOT forced with -X.
           http_code=$(curl -sS -L -o /tmp/grade.json -w "%{http_code}" \
-            -X POST "$MODAL_URL" \
+            "$MODAL_URL" \
             -H "Content-Type: application/json" \
             -H "X-Auth-Token: $MODAL_TOKEN" \
             --max-time 700 \
